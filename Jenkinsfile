@@ -36,7 +36,7 @@ pipeline {
         }
         stage('Docker Build') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${BUILD_NUMBER} ."
+                sh 'docker build -t $IMAGE_NAME:$BUILD_NUMBER .'
             }
         }
         stage('Approval') {
@@ -46,23 +46,21 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                sh "docker rm -f ${CONTAINER_NAME} || true"
-                sh "docker run -d --name ${CONTAINER_NAME} --network techstore-ci-net -p 5001:5000 -e DB_PASSWORD=\"${DB_PASSWORD}\" ${IMAGE_NAME}:${BUILD_NUMBER}"
+                sh 'docker rm -f $CONTAINER_NAME || true'
+                sh 'docker run -d --name $CONTAINER_NAME --network techstore-ci-net -p 5001:5000 -e DB_PASSWORD="$DB_PASSWORD" $IMAGE_NAME:$BUILD_NUMBER'
             }
         }
         stage('Smoke Test') {
             steps {
                 sh 'sleep 2'
-                sh "curl -fsS http://${CONTAINER_NAME}:5000/health"
+                sh 'curl -fsS http://$CONTAINER_NAME:5000/health'
             }
         }
     }
 
     post {
         always {
-            script {
-                sh "docker ps -a --filter name=${CONTAINER_NAME} || true"
-            }
+            sh 'docker ps -a --filter name=techstore-inventory-ci || true'
         }
     }
 }
